@@ -1,0 +1,7 @@
+# Eclipse project settings
+**/.project
+**/.settings
+**/.classpath
+
+# Build
+**/target
