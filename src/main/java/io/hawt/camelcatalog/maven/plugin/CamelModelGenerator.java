@@ -15,12 +15,12 @@ import java.net.URLClassLoader;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
-import org.apache.commons.lang3.Validate;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -49,10 +49,10 @@ public class CamelModelGenerator {
         this.camelCatalogDir = camelCatalogDir;
         this.schemaFile = schemaFile;
 
-        Validate.notNull(this.log, "log must be initialised");
-        Validate.notNull(this.camelVersion, "camel version must be initialised");
-        Validate.notNull(this.camelCatalogDir, "camel catalog directory must be initialised");
-        Validate.notNull(this.schemaFile, "schema file must be initialised");
+        Objects.requireNonNull(this.log, "log must be initialised");
+        Objects.requireNonNull(this.camelVersion, "camel version must be initialised");
+        Objects.requireNonNull(this.camelCatalogDir, "camel catalog directory must be initialised");
+        Objects.requireNonNull(this.schemaFile, "schema file must be initialised");
 
         if (!this.camelCatalogDir.canRead()) {
             throw new IllegalArgumentException(

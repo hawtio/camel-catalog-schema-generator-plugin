@@ -53,7 +53,6 @@
         <version.junit.platform>1.9.1</version.junit.platform>
         <version.maven>3.8.1</version.maven>
         <version.osgi>8.0.0</version.osgi>
-        <version.org.apache.commons>3.12.0</version.org.apache.commons>
         <version.org.apache.camel>3.20.2</version.org.apache.camel>
         <version.plexus.utils>3.5.1</version.plexus.utils>
     </properties>
@@ -81,11 +80,6 @@
             <artifactId>maven-core</artifactId>
             <scope>provided</scope>
             <version>${version.maven}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>${version.org.apache.commons}</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
