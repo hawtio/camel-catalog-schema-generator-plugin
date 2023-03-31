@@ -10,7 +10,7 @@
 
     <groupId>io.hawt</groupId>
     <artifactId>hawtio-camel-catalog-schema-generator-plugin</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>${project.artifactId}</name>
     <packaging>maven-plugin</packaging>
 
@@ -26,7 +26,7 @@
         <connection>scm:git:git@github.com:hawtio/hawtio-camel-catalog-schema-generator-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:hawtio/hawtio-camel-catalog-schema-generator-plugin.git</developerConnection>
         <url>git@github.com:hawtio/hawtio-camel-catalog-schema-generator-plugin.git</url>
-        <tag>HEAD</tag>
+        <tag>hawtio-0.0.1</tag>
     </scm>
 
     <distributionManagement>
@@ -205,7 +205,7 @@
     <profiles>
         <profile>
             <id>release</id>
-            <properties></properties>
+            <properties />
             <!--
                 TODO when using the release profile you should add your ~/.m2/settings.xml something like this:
 
