@@ -26,8 +26,11 @@ public class CamelModelGeneratorMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.build.directory}")
     protected File buildDir;
 
-    @Parameter(defaultValue = "${schema-outdir}/camelModel.js")
-    protected File schemaFile;
+    @Parameter(defaultValue = "${schema-outdir}")
+    protected File schemaDir;
+
+    @Parameter(defaultValue = "camel-model.js")
+    protected String schemaFileName;
 
     /**
      * Execute goal.
@@ -47,7 +50,7 @@ public class CamelModelGeneratorMojo extends AbstractMojo {
         getLog().info("Camel Catalog Artifact location: " + camelCatalog.getFile().getAbsolutePath());
 
         CamelModelGenerator generator = new CamelModelGenerator(getLog(), camelCatalog.getVersion(),
-                camelCatalog.getFile(), schemaFile);
+                camelCatalog.getFile(), schemaDir, schemaFileName);
         generator.generate();
     }
 

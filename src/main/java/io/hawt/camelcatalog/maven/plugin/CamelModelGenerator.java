@@ -1,34 +1,79 @@
 package io.hawt.camelcatalog.maven.plugin;
 
 import static io.hawt.camelcatalog.maven.plugin.util.FileHelper.loadText;
-import static io.hawt.camelcatalog.maven.plugin.util.JSonSchemaHelper.doubleQuote;
-import static io.hawt.camelcatalog.maven.plugin.util.JSonSchemaHelper.getValue;
-import static io.hawt.camelcatalog.maven.plugin.util.JSonSchemaHelper.parseJsonSchema;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
-import io.hawt.camelcatalog.maven.plugin.util.CollectionStringBuffer;
-import io.hawt.camelcatalog.maven.plugin.util.JSonSchemaHelper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class CamelModelGenerator {
+
+    private class NameSchemaPair {
+        private String name;
+        private Map<String, JsonObject> schema;
+    
+        public NameSchemaPair(String name) {
+            this.name = name;
+            this.schema = new LinkedHashMap<String, JsonObject>();
+        }
+
+//        public NameSchemaPair(String name, Comparator<String> comparator) {
+//            this.name = name;
+//            this.schema = new TreeMap<String, JsonObject>(comparator);
+//        }
+    
+        public void addGroupSchema(String group, JsonObject groupSchema) {
+            schema.put(group, groupSchema);
+        }
+    
+        public JsonObject getGroupSchema(String group) {
+            return schema.get(group);
+        }
+
+        public boolean isEmpty() {
+            return schema.isEmpty();
+        }
+    
+        public String getName() {
+            return name;
+        }
+    
+        public Map<String, JsonObject> getSchema() {
+            return schema;
+        }
+    
+        public Set<String> getGroups() {
+            return schema.keySet();
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
+    }
 
     private Log log;
 
@@ -36,23 +81,32 @@ public class CamelModelGenerator {
 
     private File camelCatalogDir;
 
-    private File schemaFile;
+    private File schemaDir;
+
+    private String schemaFileName;
+
+    private Gson gson;
 
     /**
      * Known icons for the models
      */
     private final Properties icons = new Properties();
 
-    public CamelModelGenerator(Log log, String camelVersion, File camelCatalogDir, File schemaFile) {
+    public CamelModelGenerator(Log log, String camelVersion, File camelCatalogDir, File schemaDir, String schemaFileName) {
         this.log = log;
         this.camelVersion = camelVersion;
         this.camelCatalogDir = camelCatalogDir;
-        this.schemaFile = schemaFile;
+        this.schemaDir = schemaDir;
+        this.schemaFileName = schemaFileName;
+        this.gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .create();
 
         Objects.requireNonNull(this.log, "log must be initialised");
         Objects.requireNonNull(this.camelVersion, "camel version must be initialised");
         Objects.requireNonNull(this.camelCatalogDir, "camel catalog directory must be initialised");
-        Objects.requireNonNull(this.schemaFile, "schema file must be initialised");
+        Objects.requireNonNull(this.schemaDir, "schema file directory must be initialised");
+        Objects.requireNonNull(this.schemaFileName, "schema file name must be initialsed");
 
         if (!this.camelCatalogDir.canRead()) {
             throw new IllegalArgumentException(
@@ -86,169 +140,11 @@ public class CamelModelGenerator {
         }
     }
 
-    private void initIcons() throws MojoExecutionException {
+    protected void initIcons() throws MojoExecutionException {
         try {
             icons.load(CamelModelGenerator.class.getClassLoader().getResourceAsStream("icons.properties"));
         } catch (IOException e) {
             throw new MojoExecutionException("Cannot load list of icons", e);
-        }
-    }
-
-    private void generateExpression(Set<String> languages, FileOutputStream fos) throws IOException {
-        StringBuilder sb = new StringBuilder();
-
-        // enums as a string
-        CollectionStringBuffer enums = new CollectionStringBuffer(", ");
-        for (String name : languages) {
-            // skip abstract expression as a enum choice
-            if (!"expression".equals(name)) {
-                enums.append(doubleQuote(name));
-            }
-        }
-        String enumValues = enums.toString();
-
-        CollectionStringBuffer cst = new CollectionStringBuffer(",\n");
-        sb.append("    ").append(doubleQuote("expression")).append(": {\n");
-        cst.append("      \"type\": \"object\"");
-        cst.append("      \"title\": " + doubleQuote("expression"));
-        cst.append("      \"group\": " + doubleQuote("language"));
-        cst.append("      \"icon\": " + doubleQuote("generic24.png"));
-        cst.append("      \"description\": " + doubleQuote("Expression in the choose language"));
-        sb.append(cst.toString()).append(",\n");
-
-        cst = new CollectionStringBuffer(",\n");
-        sb.append("      \"properties\": {\n");
-        sb.append("        ").append(doubleQuote("expression")).append(": {\n");
-        cst.append("          \"kind\": " + doubleQuote("element"));
-        cst.append("          \"type\": " + doubleQuote("string"));
-        cst.append("          \"title\": " + doubleQuote("Expression"));
-        cst.append("          \"description\": " + doubleQuote("The expression"));
-        cst.append("          \"required\": true\n");
-        sb.append(cst.toString());
-        sb.append("        },\n"); // a property
-
-        cst = new CollectionStringBuffer(",\n");
-        sb.append("        ").append(doubleQuote("language")).append(": {\n");
-        cst.append("          \"kind\": " + doubleQuote("element"));
-        cst.append("          \"type\": " + doubleQuote("string"));
-        cst.append("          \"title\": " + doubleQuote("Expression"));
-        cst.append("          \"description\": " + doubleQuote("The chosen language"));
-        cst.append("          \"required\": true");
-        cst.append("          \"enum\": [ " + enumValues + " ]");
-        sb.append(cst.toString()).append("\n");
-        sb.append("        }\n"); // a property
-
-        sb.append("      }\n"); // properties
-        sb.append("    },\n"); // expression
-
-        fos.write(sb.toString().getBytes());
-    }
-
-    private void generateSchema(String schema, String parent, Map<String, String> models, FileOutputStream fos,
-            Iterator<String> it) throws IOException {
-        while (it.hasNext()) {
-            String name = it.next();
-            String json = models.get(name);
-
-            StringBuilder sb = new StringBuilder();
-
-            List<Map<String, String>> model = parseJsonSchema(parent, json, false);
-            List<Map<String, String>> properties = parseJsonSchema("properties", json, true);
-
-            String group = getValue("label", model);
-            String title = getValue("title", model);
-            String input = getValue("input", model);
-            String output = getValue("output", model);
-            String nextSiblingAddedAsChild = "false";
-            if ("true".equals(input) && "false".equals(output)) {
-                nextSiblingAddedAsChild = "true";
-            }
-            String description = getValue("description", model);
-            String icon = findIcon(name);
-
-            // skip non categroized
-            if (group == null) {
-                continue;
-            }
-
-            CollectionStringBuffer cst = new CollectionStringBuffer(",\n");
-            sb.append("    ").append(doubleQuote(name)).append(": {\n");
-            cst.append("      \"type\": \"object\"");
-            cst.append("      \"title\": " + doubleQuote(title));
-            cst.append("      \"group\": " + doubleQuote(group));
-            cst.append("      \"icon\": " + doubleQuote(icon));
-            cst.append("      \"description\": " + doubleQuote(safeDescription(description)));
-            // eips and rests allow to be defined as a graph with inputs and outputs
-            if ("eips".equals(schema) || "rests".equals(schema)) {
-                cst.append("      \"acceptInput\": " + doubleQuote(input));
-                cst.append("      \"acceptOutput\": " + doubleQuote(output));
-                cst.append("      \"nextSiblingAddedAsChild\": " + doubleQuote(nextSiblingAddedAsChild));
-            }
-            sb.append(cst.toString()).append(",\n");
-
-            sb.append("      \"properties\": {\n");
-            Iterator<Map<String, String>> it2 = properties.iterator();
-            while (it2.hasNext()) {
-                Map<String, String> option = it2.next();
-                cst = new CollectionStringBuffer(",\n");
-
-                String optionName = option.get("name");
-                title = asTitle(optionName);
-                String kind = option.get("kind");
-                String type = option.get("type");
-                String required = option.get("required");
-                String deprecated = option.get("deprecated");
-                description = option.get("description");
-                String defaultValue = option.get("defaultValue");
-                String enumValues = option.get("enum");
-
-                // special for aggregate as it has duplicate option names
-                if ("completionSize".equals(optionName) && "expression".equals(kind)) {
-                    optionName = "completionSizeExpression";
-                } else if ("completionTimeout".equals(optionName) && "expression".equals(kind)) {
-                    optionName = "completionTimeoutExpression";
-                }
-
-                // skip inputs/outputs
-                if ("inputs".equals(optionName) || "outputs".equals(optionName)) {
-                    continue;
-                }
-                sb.append("        ").append(doubleQuote(optionName)).append(": {\n");
-                cst.append("          \"kind\": " + doubleQuote(kind));
-                cst.append("          \"type\": " + doubleQuote(type));
-                if (defaultValue != null) {
-                    cst.append("          \"defaultValue\": " + doubleQuote(safeDefaultValue(defaultValue)));
-                }
-                if (enumValues != null) {
-                    cst.append("          \"enum\": [ " + safeEnumJson(enumValues) + " ]");
-                }
-                cst.append("          \"description\": " + doubleQuote(safeDescription(description)));
-                cst.append("          \"title\": " + doubleQuote(title));
-                if ("true".equals(required)) {
-                    cst.append("          \"required\": true");
-                } else {
-                    cst.append("          \"required\": false");
-                }
-                if ("true".equals(deprecated)) {
-                    cst.append("          \"deprecated\": true");
-                } else {
-                    cst.append("          \"deprecated\": false");
-                }
-                sb.append(cst.toString());
-                sb.append("\n");
-                if (it2.hasNext()) {
-                    sb.append("        },\n"); // a property
-                } else {
-                    sb.append("        }\n"); // a property
-                }
-            }
-            sb.append("      }\n"); // properties
-            if (it.hasNext()) {
-                sb.append("    },\n"); // name
-            } else {
-                sb.append("    }\n"); // name
-            }
-            fos.write(sb.toString().getBytes());
         }
     }
 
@@ -259,20 +155,6 @@ public class CamelModelGenerator {
             answer = "generic24.png";
         }
         return answer;
-    }
-
-    private String asTitle(String name) {
-        // capitalize the name as tooltip
-        return JSonSchemaHelper.asTitle(name);
-    }
-
-    private String safeEnumJson(String values) {
-        CollectionStringBuffer cst = new CollectionStringBuffer();
-        cst.setSeparator(", ");
-        for (String v : values.split(",")) {
-            cst.append(doubleQuote(v));
-        }
-        return cst.toString();
     }
 
     /**
@@ -297,35 +179,185 @@ public class CamelModelGenerator {
         return description;
     }
 
-    private boolean hasLabel(List<Map<String, String>> model, String label) {
-        for (Map<String, String> row : model) {
-            String entry = row.get("label");
-            if (entry != null) {
-                return entry.contains(label);
+    private boolean hasGroup(JsonObject model, String group) {
+        if (!model.has("group"))
+            return false;
+
+        return model.get("group").getAsString().contains(group);
+    }
+
+    private String getStringValue(String name, JsonElement element) {
+        if (element == null)
+            return "";
+
+        if (element.isJsonPrimitive())
+            return element.getAsString();
+
+        throw new IllegalStateException("Element " + name + " is not a string value");
+    }
+
+    private boolean getBooleanValue(String name, JsonElement element) {
+        if (! element.isJsonPrimitive()) {
+            throw new IllegalStateException("Element " + name + " is not a boolean value");
+        }
+
+        return element.getAsBoolean();
+    }
+
+    private JsonArray getArrayValue(String name, JsonElement element) {
+        if (! element.isJsonArray()) {
+            throw new IllegalStateException("Element " + name + " is not an array value");
+        }
+
+        return element.getAsJsonArray();
+    }
+
+    private JsonObject parsePropertyValue(JsonElement element) {
+        if (! element.isJsonObject()) {
+            return null;
+        }
+
+        JsonObject source = element.getAsJsonObject();
+
+        JsonObject valueObject = new JsonObject();
+        valueObject.addProperty("kind", getStringValue("kind", source.get("kind")));
+        valueObject.addProperty("type", getStringValue("type", source.get("type")));
+
+        JsonElement defaultValue = source.get("defaultValue");
+        if (defaultValue != null) {
+            valueObject.addProperty("defaultValue", safeDefaultValue(getStringValue("defaultValue", defaultValue)));
+        }
+
+        JsonElement enumValue = source.get("enum");
+        if (enumValue != null) {
+            valueObject.add("enum", getArrayValue("enum", enumValue));
+        }
+        
+        valueObject.addProperty("description", safeDescription(getStringValue("description", source.get("description"))));
+        valueObject.addProperty("title", getStringValue("displayName", source.get("displayName")));
+        valueObject.addProperty("required", getBooleanValue("required", source.get("required")));
+        valueObject.addProperty("deprecated", getBooleanValue("deprecated", source.get("deprecated")));
+        return valueObject;
+    }
+
+    protected JsonObject parseSchemaObject(String name, String groupId, String json) {
+        JsonObject jsonObject = JsonParser.parseString(json).getAsJsonObject();
+        JsonObject groupObject = jsonObject.get(groupId).getAsJsonObject();
+        JsonObject srcPropsObject = jsonObject.get("properties").getAsJsonObject();
+
+        String group = getStringValue("label", groupObject.get("label"));
+        String title = getStringValue("title", groupObject.get("title"));
+        String input = getStringValue("input", groupObject.get("input"));
+        String output = getStringValue("output", groupObject.get("output"));
+        String nextSiblingAddedAsChild = "false";
+        if ("true".equals(input) && "false".equals(output)) {
+            nextSiblingAddedAsChild = "true";
+        }
+        String description = getStringValue("description", groupObject.get("description"));
+        String icon = findIcon(name);
+
+        JsonObject contentObject = new JsonObject();
+        contentObject.addProperty("type", "object");
+        contentObject.addProperty("title", title);
+        contentObject.addProperty("group", group);
+        contentObject.addProperty("icon",  icon);
+        contentObject.addProperty("description", safeDescription(description));
+
+        // eips and rests allow to be defined as a graph with inputs and outputs
+        if ((group.contains("eip")) || group.contains("rest")) {
+            contentObject.addProperty("acceptInput", input);
+            contentObject.addProperty("acceptOutput", output);
+            contentObject.addProperty("nextSiblingAddedAsChild", nextSiblingAddedAsChild);
+        }
+
+        JsonObject propsObject = new JsonObject();
+        
+        for (Map.Entry<String, JsonElement> property: srcPropsObject.asMap().entrySet()) {
+            JsonObject value = parsePropertyValue(property.getValue());
+            if (value == null)
+                continue;
+
+            propsObject.add(property.getKey(), value);
+        }
+
+        contentObject.add("properties", propsObject);
+        JsonObject schemaObject = new JsonObject();
+        schemaObject.add(name, contentObject);
+        
+        return schemaObject;
+
+    }
+
+    private void generationExpression(JsonObject target, Set<String> languages) {
+    
+        JsonArray enumArray = new JsonArray();
+        for (String language : languages) {
+            // skip abstract expression as a enum choice
+            if (!"expression".equals(language)) {
+                enumArray.add(language);
             }
         }
-        return false;
+    
+        target.addProperty("type", "object");
+        target.addProperty("title", "expression");
+        target.addProperty("group", "language");
+        target.addProperty("icon", findIcon("generic"));
+        target.addProperty("description", "Expression in the choose language");
+    
+        JsonObject expressionProp = new JsonObject();
+        expressionProp.addProperty("kind", "element");
+        expressionProp.addProperty("type", "string");
+        expressionProp.addProperty("title", "Expression");
+        expressionProp.addProperty("group", "language");
+        expressionProp.addProperty("description", "The expression");
+        expressionProp.addProperty("required", true);
+    
+        JsonObject langProp = new JsonObject();
+        langProp.addProperty("kind", "element");
+        langProp.addProperty("type", "string");
+        langProp.addProperty("title", "Expression");
+        langProp.addProperty("group", "language");
+        langProp.addProperty("description", "The chosen language");
+        langProp.addProperty("required", true);
+        langProp.add("enum", enumArray);
+    
+        JsonObject properties = new JsonObject();
+        properties.add("expression", expressionProp);
+        properties.add("language", langProp);
+        target.add("properties", properties);
     }
 
-    private void writeObjectsToSchema(Map<String, String> objects, String category, String parent, FileOutputStream fos)
-            throws IOException {
-        Iterator<String> it;
-        fos.write(("  \"" + category + "\": {\n").getBytes());
-        it = objects.keySet().iterator();
-        generateSchema(category, parent, objects, fos, it);
-        fos.write("  }".getBytes());
+    private JsonObject generateGroupSchema(String name, Map<String, JsonObject> content) {
+        JsonObject schema = new JsonObject();
+        JsonObject schemaContent = new JsonObject();
+        for (Map.Entry<String, JsonObject> child : content.entrySet()) {
+            schemaContent.add(child.getKey(), child.getValue());
+        }
+        schema.add(name, schemaContent);
+        return schema;
     }
 
+    private void writeToFile(String name, JsonObject modelObject) throws IOException {
+        FileWriter writer = new FileWriter(schemaDir + File.separator + name + "-camel-model.json");
+//        String displayName = name.substring(0,1).toUpperCase() + name.substring(1).toLowerCase();
+//        writer.write("var _apacheCamel" + displayName + "Model = ");
+        gson.toJson(modelObject, writer);
+//        writer.write(";");
+        
+        writer.close();
+    }
+    
     public void generate() throws MojoFailureException, MojoExecutionException {
 
         initIcons();
+        
+        NameSchemaPair definitions = new NameSchemaPair("definitions");
+        definitions.addGroupSchema("expression", new JsonObject()); // initialise the expression in the correct location
 
-        // we want expression to be first
-        Map<String, String> eips = new TreeMap<String, String>();
-        Map<String, String> rests = new TreeMap<String, String>();
-        Map<String, String> dataformats = new TreeMap<String, String>();
-        Map<String, String> languages = new TreeMap<String, String>();
-        Map<String, String> components = new TreeMap<String, String>();
+        NameSchemaPair rests = new NameSchemaPair("rests");
+        NameSchemaPair dataformats = new NameSchemaPair("dataformats");
+        NameSchemaPair languages = new NameSchemaPair("languages");
+        NameSchemaPair components = new NameSchemaPair("components");
 
         // find the model json files and split into groups
         URL ccDir;
@@ -334,62 +366,70 @@ public class CamelModelGenerator {
         } catch (MalformedURLException ex) {
             throw new MojoFailureException("Error loading models from camel-catalog due " + ex.getMessage(), ex);
         }
-
+        
         camelCatalogExtract(ccDir, "org/apache/camel/catalog/models", (String name, String text) -> {
             // use the model files to split into the groups we use in camelModel.js
-            List<Map<String, String>> model = parseJsonSchema("model", text, false);
-            if (hasLabel(model, "rest")) {
-                rests.put(name, text);
-            } else if (hasLabel(model, "dataformat")) {
-                dataformats.put(name, text);
-            } else if (hasLabel(model, "language")) {
-                languages.put(name, text);
+            JsonObject schema = parseSchemaObject(name, "model", text);
+            JsonObject schemaContent = schema.get(name).getAsJsonObject();
+            if (hasGroup(schemaContent, "rest")) {
+                rests.addGroupSchema(name, schemaContent);
+            } else if (hasGroup(schemaContent, "dataformat")) {
+                dataformats.addGroupSchema(name, schemaContent);
+            } else if (hasGroup(schemaContent, "language")) {
+                languages.addGroupSchema(name, schemaContent);
             } else {
-                eips.put(name, text);
+                definitions.addGroupSchema(name, schemaContent);
             }
         });
 
         camelCatalogExtract(ccDir, "org/apache/camel/catalog/components", (String name, String text) -> {
-            components.put(name, text);
+            JsonObject schema = parseSchemaObject(name, "component", text);
+            JsonObject schemaContent = schema.get(name).getAsJsonObject();
+            components.addGroupSchema(name, schemaContent);
         });
 
-        if (eips.isEmpty()) {
-            getLog().info("Cannot update " + schemaFile + " as no Camel models found in the Apache Camel version");
+        if (definitions.isEmpty()) {
+            getLog().info("Cannot update " + schemaDir + " as no Camel models found in the Apache Camel version");
             return;
         }
 
+        /*
+         * Generate expression
+         */
+        generationExpression(definitions.getGroupSchema("expression"), languages.getGroups());
+
         try {
-            FileOutputStream fos = new FileOutputStream(schemaFile, false);
-            String version = "var _apacheCamelModelVersion = '" + getVersion() + "';\n\n";
-            fos.write(version.getBytes());
-            fos.write("var _apacheCamelModel =".getBytes());
-            fos.write("{\n".getBytes());
+            if (! schemaDir.isDirectory() && ! schemaDir.mkdirs())
+                throw new IllegalStateException("Cannot create output directory for camel models");
 
-            fos.write("  \"definitions\": {\n".getBytes());
+            List<NameSchemaPair> pairs = new ArrayList<NameSchemaPair>();
+            pairs.add(definitions);
+            pairs.add(rests);
+            pairs.add(dataformats);
+            pairs.add(languages);
+            pairs.add(components);
 
-            // generate expression first as its special and needed for eips
-            generateExpression(languages.keySet(), fos);
-            // then followed by the regular eips
-            Iterator<String> it = eips.keySet().iterator();
-            generateSchema("eips", "model", eips, fos, it);
-            fos.write("  },\n".getBytes());
+            /*
+             * Create model file for import
+             */
+            FileWriter writer = new FileWriter(schemaDir + File.separator + schemaFileName);
 
-            writeObjectsToSchema(rests, "rests", "model", fos);
-            fos.write(",\n".getBytes());
-            writeObjectsToSchema(dataformats, "dataformats", "model", fos);
-            fos.write(",\n".getBytes());
-            writeObjectsToSchema(languages, "languages", "model", fos);
-            fos.write(",\n".getBytes());
-            writeObjectsToSchema(components, "components", "component", fos);
-            fos.write("\n".getBytes());
+            for (NameSchemaPair pair : pairs) {
+                JsonObject jsonObject = generateGroupSchema(pair.getName(), pair.getSchema());
+                writeToFile(pair.getName(), jsonObject); // write to json file
 
-            fos.write("}\n".getBytes());
-            fos.close();
+                writer.write("import " + pair.getName() + " from './" + pair.getName() + "-camel-model.json';\n");
+            }
+
+            writer.write("\nvar apacheCamelModelVersion = '" + getVersion() + "';\n\n");
+
+            writer.write(String.format("export { %s, %s, %s, %s, %s, apacheCamelModelVersion };\n", definitions, rests, dataformats, languages, components));
+            writer.close();
 
         } catch (Exception e) {
-            throw new MojoFailureException("Error writing to file " + schemaFile);
+            throw new MojoFailureException("Error writing model files to schema directory " + schemaDir + ": " + e);
         }
 
-        getLog().info("Assembled Camel models into combined schema: " + schemaFile);
+        getLog().info("Assembled Camel models into schema directory: " + schemaDir);
     }
 }

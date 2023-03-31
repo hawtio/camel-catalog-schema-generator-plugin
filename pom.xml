@@ -112,6 +112,11 @@
             <version>${version.osgi}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${version.gson}</version>
+        </dependency>
         <!-- generated help mojo has a dependency to plexus-utils -->
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
@@ -147,12 +152,6 @@
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-suite</artifactId>
             <version>${version.junit.platform}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>${version.gson}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

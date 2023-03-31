@@ -1,0 +1,139 @@
+{
+    "rest": {
+        "type": "object",
+        "title": "Rest",
+        "group": "rest",
+        "icon": "generic24.png",
+        "description": "Defines a rest service using the rest-dsl",
+        "acceptInput": "false",
+        "acceptOutput": "true",
+        "nextSiblingAddedAsChild": "false",
+        "properties": {
+            "path": {
+                "kind": "attribute",
+                "type": "string",
+                "description": "Path of the rest service, such as \/foo",
+                "title": "Path",
+                "required": false,
+                "deprecated": false
+            },
+            "consumes": {
+                "kind": "attribute",
+                "type": "string",
+                "description": "To define the content type what the REST service consumes (accept as input), such as application\/xml or application\/json. This option will override what may be configured on a parent level",
+                "title": "Consumes",
+                "required": false,
+                "deprecated": false
+            },
+            "produces": {
+                "kind": "attribute",
+                "type": "string",
+                "description": "To define the content type what the REST service produces (uses for output), such as application\/xml or application\/json This option will override what may be configured on a parent level",
+                "title": "Produces",
+                "required": false,
+                "deprecated": false
+            },
+            "disabled": {
+                "kind": "attribute",
+                "type": "boolean",
+                "defaultValue": "false",
+                "description": "Whether to disable this REST service from the route during build time. Once an REST service has been disabled then it cannot be enabled later at runtime.",
+                "title": "Disabled",
+                "required": false,
+                "deprecated": false
+            },
+            "bindingMode": {
+                "kind": "attribute",
+                "type": "enum",
+                "defaultValue": "off",
+                "enum": [
+                    "off",
+                    "auto",
+                    "json",
+                    "xml",
+                    "json_xml"
+                ],
+                "description": "Sets the binding mode to use. This option will override what may be configured on a parent level The default value is auto",
+                "title": "Binding Mode",
+                "required": false,
+                "deprecated": false
+            },
+            "skipBindingOnErrorCode": {
+                "kind": "attribute",
+                "type": "boolean",
+                "defaultValue": "false",
+                "description": "Whether to skip binding on output if there is a custom HTTP error code header. This allows to build custom error messages that do not bind to json \/ xml etc, as success messages otherwise will do. This option will override what may be configured on a parent level",
+                "title": "Skip Binding On Error Code",
+                "required": false,
+                "deprecated": false
+            },
+            "clientRequestValidation": {
+                "kind": "attribute",
+                "type": "boolean",
+                "defaultValue": "false",
+                "description": "Whether to enable validation of the client request to check: 1) Content-Type header matches what the Rest DSL consumes; returns HTTP Status 415 if validation error. 2) Accept header matches what the Rest DSL produces; returns HTTP Status 406 if validation error. 3) Missing required data (query parameters, HTTP headers, body); returns HTTP Status 400 if validation error. 4) Parsing error of the message body (JSon, XML or Auto binding mode must be enabled); returns HTTP Status 400 if validation error.",
+                "title": "Client Request Validation",
+                "required": false,
+                "deprecated": false
+            },
+            "enableCORS": {
+                "kind": "attribute",
+                "type": "boolean",
+                "defaultValue": "false",
+                "description": "Whether to enable CORS headers in the HTTP response. This option will override what may be configured on a parent level The default value is false.",
+                "title": "Enable CORS",
+                "required": false,
+                "deprecated": false
+            },
+            "apiDocs": {
+                "kind": "attribute",
+                "type": "boolean",
+                "defaultValue": "true",
+                "description": "Whether to include or exclude this rest operation in API documentation. This option will override what may be configured on a parent level. The default value is true.",
+                "title": "Api Docs",
+                "required": false,
+                "deprecated": false
+            },
+            "tag": {
+                "kind": "attribute",
+                "type": "string",
+                "description": "To configure a special tag for the operations within this rest definition.",
+                "title": "Tag",
+                "required": false,
+                "deprecated": false
+            },
+            "securityDefinitions": {
+                "kind": "element",
+                "type": "object",
+                "description": "Sets the security definitions such as Basic, OAuth2 etc.",
+                "title": "Security Definitions",
+                "required": false,
+                "deprecated": false
+            },
+            "securityRequirements": {
+                "kind": "element",
+                "type": "array",
+                "description": "Sets the security requirement(s) for all endpoints.",
+                "title": "Security Requirements",
+                "required": false,
+                "deprecated": false
+            },
+            "id": {
+                "kind": "attribute",
+                "type": "string",
+                "description": "Sets the id of this node",
+                "title": "Id",
+                "required": false,
+                "deprecated": false
+            },
+            "description": {
+                "kind": "element",
+                "type": "object",
+                "description": "Sets the description of this node",
+                "title": "Description",
+                "required": false,
+                "deprecated": false
+            }
+        }
+    }
+}
