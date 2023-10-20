@@ -8,9 +8,7 @@ The following walks through how we make a release.
 
 ### Before releasing
 
-Pop onto [IRC](https://hawt.io/community/) and let folks know you are about to cut a release.
-
-Also, pull `main` and make sure things build locally fine first.
+Pull `main` and make sure things build locally fine first.
 
 #### Sonatype OSSRH Account
 
@@ -50,7 +48,8 @@ Once you get the account, set up your default Maven settings (`$HOME/.m2/setting
 Use the [two scripts](bin/) for releasing a version of the project:
 
 * `release`
-```
+
+```console
 ./bin/release
 Use this script to release a version from the snapshot main branch.
 
@@ -59,7 +58,8 @@ Usage:
 ```
 
 So, for example, if you want to release version `1.0.0` then normally all you need to do is run the following command:
-```
+
+```console
 ./bin/release 1.0.0 1.1-SNAPSHOT
 ```
 
@@ -67,4 +67,4 @@ So, for example, if you want to release version `1.0.0` then normally all you ne
 
 Go to [GitHub releases page](https://github.com/hawtio/camel-catalog-schema-generator-plugin/releases) and draft a new release based on the tag you have just released (e.g. `camel-catalog-schema-generator-plugin-1.0.0`) with release notes, then publish it.
 
-Finally tweet the new release from [@hawtio](https://twitter.com/hawtio) to let the community know!
+Finally, tweet the new release from [@hawtio](https://twitter.com/hawtio) to let the community know!
