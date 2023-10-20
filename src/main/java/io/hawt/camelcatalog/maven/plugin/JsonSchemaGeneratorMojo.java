@@ -5,13 +5,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Map;
 
+import io.hawt.jsonschema.SchemaLookup;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-
-import io.hawt.jsonschema.SchemaLookup;
 
 /**
  * Uses hawtio-json-schema-mbean to generate Json Schema for Java classes

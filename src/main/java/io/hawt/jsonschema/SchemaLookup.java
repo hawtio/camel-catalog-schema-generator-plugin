@@ -5,12 +5,10 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.factories.SchemaFactoryWrapper;
-
-import io.hawt.jsonschema.internal.customizers.JsonSchemaCustomizer;
-import io.hawt.util.MBeanSupport;
 import io.hawt.jsonschema.internal.BeanValidationAnnotationModule;
 import io.hawt.jsonschema.internal.IgnorePropertiesBackedByTransientFields;
-
+import io.hawt.jsonschema.internal.customizers.JsonSchemaCustomizer;
+import io.hawt.util.MBeanSupport;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;

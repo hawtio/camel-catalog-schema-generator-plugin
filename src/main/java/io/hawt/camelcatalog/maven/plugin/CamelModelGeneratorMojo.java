@@ -1,7 +1,6 @@
 package io.hawt.camelcatalog.maven.plugin;
 
 import java.io.File;
-import java.util.Iterator;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.AbstractMojo;
@@ -17,7 +16,7 @@ import org.apache.maven.project.MavenProject;
  * To generate camelModel.js from the Apache Camel release
  */
 @Mojo(name = "generate-camel-model", defaultPhase = LifecyclePhase.GENERATE_SOURCES,
-            requiresDependencyResolution = ResolutionScope.COMPILE)
+    requiresDependencyResolution = ResolutionScope.COMPILE)
 public class CamelModelGeneratorMojo extends AbstractMojo {
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
@@ -50,15 +49,14 @@ public class CamelModelGeneratorMojo extends AbstractMojo {
         getLog().info("Camel Catalog Artifact location: " + camelCatalog.getFile().getAbsolutePath());
 
         CamelModelGenerator generator = new CamelModelGenerator(getLog(), camelCatalog.getVersion(),
-                camelCatalog.getFile(), schemaDir, schemaFileName);
+            camelCatalog.getFile(), schemaDir, schemaFileName);
         generator.generate();
     }
 
     private static Artifact findCamelCatalogArtifact(MavenProject project) {
-        @SuppressWarnings("deprecation")
-        Iterator<?> it = project.getDependencyArtifacts().iterator();
-        while (it.hasNext()) {
-            Artifact artifact = (Artifact) it.next();
+        // https://issues.apache.org/jira/browse/MNG-7086
+        //noinspection deprecation
+        for (Artifact artifact : project.getDependencyArtifacts()) {
             if (artifact.getGroupId().equals("org.apache.camel") && artifact.getArtifactId().equals("camel-catalog")) {
                 return artifact;
             }

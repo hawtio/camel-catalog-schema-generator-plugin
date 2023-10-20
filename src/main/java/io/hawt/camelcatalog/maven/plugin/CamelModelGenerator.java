@@ -1,7 +1,5 @@
 package io.hawt.camelcatalog.maven.plugin;
 
-import static io.hawt.camelcatalog.maven.plugin.util.FileHelper.loadText;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,37 +16,33 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+
+import static io.hawt.camelcatalog.maven.plugin.util.FileHelper.loadText;
 
 public class CamelModelGenerator {
 
-    private class NameSchemaPair {
-        private String name;
-        private Map<String, JsonObject> schema;
-    
+    private static class NameSchemaPair {
+        private final String name;
+        private final Map<String, JsonObject> schema;
+
         public NameSchemaPair(String name) {
             this.name = name;
-            this.schema = new LinkedHashMap<String, JsonObject>();
+            this.schema = new LinkedHashMap<>();
         }
 
-//        public NameSchemaPair(String name, Comparator<String> comparator) {
-//            this.name = name;
-//            this.schema = new TreeMap<String, JsonObject>(comparator);
-//        }
-    
         public void addGroupSchema(String group, JsonObject groupSchema) {
             schema.put(group, groupSchema);
         }
-    
+
         public JsonObject getGroupSchema(String group) {
             return schema.get(group);
         }
@@ -56,15 +50,15 @@ public class CamelModelGenerator {
         public boolean isEmpty() {
             return schema.isEmpty();
         }
-    
+
         public String getName() {
             return name;
         }
-    
+
         public Map<String, JsonObject> getSchema() {
             return schema;
         }
-    
+
         public Set<String> getGroups() {
             return schema.keySet();
         }
@@ -75,17 +69,17 @@ public class CamelModelGenerator {
         }
     }
 
-    private Log log;
+    private final Log log;
 
-    private String camelVersion;
+    private final String camelVersion;
 
-    private File camelCatalogDir;
+    private final File camelCatalogDir;
 
-    private File schemaDir;
+    private final File schemaDir;
 
-    private String schemaFileName;
+    private final String schemaFileName;
 
-    private Gson gson;
+    private final Gson gson;
 
     /**
      * Known icons for the models
@@ -99,8 +93,8 @@ public class CamelModelGenerator {
         this.schemaDir = schemaDir;
         this.schemaFileName = schemaFileName;
         this.gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
+            .setPrettyPrinting()
+            .create();
 
         Objects.requireNonNull(this.log, "log must be initialised");
         Objects.requireNonNull(this.camelVersion, "camel version must be initialised");
@@ -110,7 +104,7 @@ public class CamelModelGenerator {
 
         if (!this.camelCatalogDir.canRead()) {
             throw new IllegalArgumentException(
-                    "Cannot read camel catalog directory: " + this.camelCatalogDir.getAbsolutePath());
+                "Cannot read camel catalog directory: " + this.camelCatalogDir.getAbsolutePath());
         }
     }
 
@@ -123,7 +117,7 @@ public class CamelModelGenerator {
     }
 
     private void camelCatalogExtract(URL camelCatalogDir, String dataPath, BiConsumer<String, String> callback)
-            throws MojoFailureException {
+        throws MojoFailureException {
         try (URLClassLoader loader = new URLClassLoader(new URL[] { camelCatalogDir })) {
             InputStream is = loader.getResourceAsStream(dataPath + ".properties");
             String lines = loadText(is);
@@ -131,9 +125,7 @@ public class CamelModelGenerator {
             for (String name : lines.split("\n")) {
                 is = loader.getResourceAsStream(dataPath + "/" + name + ".json");
                 String text = loadText(is);
-                if (text != null) {
-                    callback.accept(name, text);
-                }
+                callback.accept(name, text);
             }
         } catch (Exception e) {
             throw new MojoFailureException("Error loading models from camel-catalog due " + e.getMessage(), e);
@@ -197,7 +189,7 @@ public class CamelModelGenerator {
     }
 
     private boolean getBooleanValue(String name, JsonElement element) {
-        if (! element.isJsonPrimitive()) {
+        if (!element.isJsonPrimitive()) {
             throw new IllegalStateException("Element " + name + " is not a boolean value");
         }
 
@@ -205,7 +197,7 @@ public class CamelModelGenerator {
     }
 
     private JsonArray getArrayValue(String name, JsonElement element) {
-        if (! element.isJsonArray()) {
+        if (!element.isJsonArray()) {
             throw new IllegalStateException("Element " + name + " is not an array value");
         }
 
@@ -213,7 +205,7 @@ public class CamelModelGenerator {
     }
 
     private JsonObject parsePropertyValue(JsonElement element) {
-        if (! element.isJsonObject()) {
+        if (!element.isJsonObject()) {
             return null;
         }
 
@@ -232,7 +224,7 @@ public class CamelModelGenerator {
         if (enumValue != null) {
             valueObject.add("enum", getArrayValue("enum", enumValue));
         }
-        
+
         valueObject.addProperty("description", safeDescription(getStringValue("description", source.get("description"))));
         valueObject.addProperty("title", getStringValue("displayName", source.get("displayName")));
         valueObject.addProperty("required", getBooleanValue("required", source.get("required")));
@@ -260,7 +252,7 @@ public class CamelModelGenerator {
         contentObject.addProperty("type", "object");
         contentObject.addProperty("title", title);
         contentObject.addProperty("group", group);
-        contentObject.addProperty("icon",  icon);
+        contentObject.addProperty("icon", icon);
         contentObject.addProperty("description", safeDescription(description));
 
         // eips and rests allow to be defined as a graph with inputs and outputs
@@ -271,8 +263,8 @@ public class CamelModelGenerator {
         }
 
         JsonObject propsObject = new JsonObject();
-        
-        for (Map.Entry<String, JsonElement> property: srcPropsObject.asMap().entrySet()) {
+
+        for (Map.Entry<String, JsonElement> property : srcPropsObject.asMap().entrySet()) {
             JsonObject value = parsePropertyValue(property.getValue());
             if (value == null)
                 continue;
@@ -283,27 +275,27 @@ public class CamelModelGenerator {
         contentObject.add("properties", propsObject);
         JsonObject schemaObject = new JsonObject();
         schemaObject.add(name, contentObject);
-        
+
         return schemaObject;
 
     }
 
     private void generationExpression(JsonObject target, Set<String> languages) {
-    
+
         JsonArray enumArray = new JsonArray();
         for (String language : languages) {
-            // skip abstract expression as a enum choice
+            // skip abstract expression as an enum choice
             if (!"expression".equals(language)) {
                 enumArray.add(language);
             }
         }
-    
+
         target.addProperty("type", "object");
         target.addProperty("title", "expression");
         target.addProperty("group", "language");
         target.addProperty("icon", findIcon("generic"));
         target.addProperty("description", "Expression in the choose language");
-    
+
         JsonObject expressionProp = new JsonObject();
         expressionProp.addProperty("kind", "element");
         expressionProp.addProperty("type", "string");
@@ -311,7 +303,7 @@ public class CamelModelGenerator {
         expressionProp.addProperty("group", "language");
         expressionProp.addProperty("description", "The expression");
         expressionProp.addProperty("required", true);
-    
+
         JsonObject langProp = new JsonObject();
         langProp.addProperty("kind", "element");
         langProp.addProperty("type", "string");
@@ -320,7 +312,7 @@ public class CamelModelGenerator {
         langProp.addProperty("description", "The chosen language");
         langProp.addProperty("required", true);
         langProp.add("enum", enumArray);
-    
+
         JsonObject properties = new JsonObject();
         properties.add("expression", expressionProp);
         properties.add("language", langProp);
@@ -339,18 +331,14 @@ public class CamelModelGenerator {
 
     private void writeToFile(String name, JsonObject modelObject) throws IOException {
         FileWriter writer = new FileWriter(schemaDir + File.separator + name + "-camel-model.json");
-//        String displayName = name.substring(0,1).toUpperCase() + name.substring(1).toLowerCase();
-//        writer.write("var _apacheCamel" + displayName + "Model = ");
         gson.toJson(modelObject, writer);
-//        writer.write(";");
-        
         writer.close();
     }
-    
+
     public void generate() throws MojoFailureException, MojoExecutionException {
 
         initIcons();
-        
+
         NameSchemaPair definitions = new NameSchemaPair("definitions");
         definitions.addGroupSchema("expression", new JsonObject()); // initialise the expression in the correct location
 
@@ -366,7 +354,7 @@ public class CamelModelGenerator {
         } catch (MalformedURLException ex) {
             throw new MojoFailureException("Error loading models from camel-catalog due " + ex.getMessage(), ex);
         }
-        
+
         camelCatalogExtract(ccDir, "org/apache/camel/catalog/models", (String name, String text) -> {
             // use the model files to split into the groups we use in camelModel.js
             JsonObject schema = parseSchemaObject(name, "model", text);
@@ -399,10 +387,10 @@ public class CamelModelGenerator {
         generationExpression(definitions.getGroupSchema("expression"), languages.getGroups());
 
         try {
-            if (! schemaDir.isDirectory() && ! schemaDir.mkdirs())
+            if (!schemaDir.isDirectory() && !schemaDir.mkdirs())
                 throw new IllegalStateException("Cannot create output directory for camel models");
 
-            List<NameSchemaPair> pairs = new ArrayList<NameSchemaPair>();
+            List<NameSchemaPair> pairs = new ArrayList<>();
             pairs.add(definitions);
             pairs.add(rests);
             pairs.add(dataformats);

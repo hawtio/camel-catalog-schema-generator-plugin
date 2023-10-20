@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright 2005-2014 Red Hat, Inc.
  *
  *  Red Hat licenses this file to you under the Apache License, version
@@ -16,15 +16,14 @@
 package io.hawt.jsonschema.internal.customizers.io.hawt.jsonschema.test.objects;
 
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-
 import io.hawt.jsonschema.internal.customizers.JsonSchemaCustomizer;
 
+@SuppressWarnings("unused")
 public class ObjectWithJaxbAnnotationsSchemaCustomizer extends JsonSchemaCustomizer {
 
     @Override
     public JsonSchema customize(JsonSchema originalSchema) {
         JsonSchema schema = super.customize(originalSchema);
-//        schema.asObjectSchema().getProperties().get("SomeOtherProp").asStringSchema().setDefault("default-value");
         schema.asObjectSchema().getProperties().get("SomeOtherProp").asStringSchema().setDefault("default-value");
         return schema;
     }

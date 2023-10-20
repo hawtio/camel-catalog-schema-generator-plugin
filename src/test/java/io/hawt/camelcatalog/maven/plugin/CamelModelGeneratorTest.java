@@ -1,16 +1,17 @@
 package io.hawt.camelcatalog.maven.plugin;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Map.Entry;
+import java.util.Objects;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.apache.maven.monitor.logging.DefaultLog;
 import org.apache.maven.plugin.logging.Log;
 import org.codehaus.plexus.logging.Logger;
@@ -19,10 +20,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author phantomjinx
@@ -30,33 +31,33 @@ import com.google.gson.JsonParser;
 public class CamelModelGeneratorTest {
 
     private static final String TARGET_DIR = "./target";
-    private File schemaDir = new File(TARGET_DIR + "/schemas");
-    private String schemaFileName = "camel-model.ts";
-    private String camelVersion = "3.20.2";
-    private Logger logger = new ConsoleLogger();
-    private Log log = new DefaultLog(logger);
+    private final File schemaDir = new File(TARGET_DIR + "/schemas");
+    private final String schemaFileName = "camel-model.ts";
+    private final String camelVersion = "3.20.2";
+    private final Logger logger = new ConsoleLogger();
+    private final Log log = new DefaultLog(logger);
 
     @BeforeEach
-    protected void setUp() throws Exception {
+    protected void setUp() {
     }
 
     @AfterEach
-    protected void tearDown() throws Exception {
+    protected void tearDown() {
     }
 
     private String resource(String fileName) throws Exception {
         URL restResource = getClass().getClassLoader().getResource(fileName);
         assertNotNull(restResource);
         String text = Files.readString(Paths.get(restResource.toURI()));
-        assertTrue(text.length() > 0);
+        assertFalse(text.isEmpty());
         return text;
     }
-    
+
     private JsonObject validJson(String filename) throws IOException {
         File jsonFile = new File(schemaDir, filename);
         assertTrue(jsonFile.exists());
         String content = Files.readString(jsonFile.toPath());
-        assertTrue(content.length() > 0);
+        assertFalse(content.isEmpty());
         JsonElement schemaElement = JsonParser.parseString(content);
         return jsonObject(schemaElement);
     }
@@ -69,26 +70,26 @@ public class CamelModelGeneratorTest {
         JsonObject expAggObject = JsonParser.parseString(resource("expected-aggregate.json")).getAsJsonObject();
 
         CamelModelGenerator generator = new CamelModelGenerator(log, camelVersion,
-                new File(TARGET_DIR + "/camel-catalog"), schemaDir, schemaFileName);
+            new File(TARGET_DIR + "/camel-catalog"), schemaDir, schemaFileName);
         generator.initIcons();
 
         JsonObject restObject = generator.parseSchemaObject("rest", "model", srcRest);
         assertEquals(expRestObject, restObject);
-        
+
         JsonObject aggObject = generator.parseSchemaObject("aggregate", "model", srcAggregate);
         assertEquals(expAggObject, aggObject);
     }
 
     @Test
     public void testGenerator() throws Exception {
-        
+
         CamelModelGenerator generator = new CamelModelGenerator(log, camelVersion,
-                new File(TARGET_DIR + "/camel-catalog"), schemaDir, schemaFileName);
+            new File(TARGET_DIR + "/camel-catalog"), schemaDir, schemaFileName);
         generator.generate();
 
         assertTrue(schemaDir.exists());
         assertTrue(schemaDir.isDirectory());
-        assertTrue(schemaDir.list().length > 0);
+        assertTrue(Objects.requireNonNull(schemaDir.list()).length > 0);
 
         JsonObject definitions = validJson("definitions-camel-model.json");
         JsonObject rests = validJson("rests-camel-model.json");
@@ -105,7 +106,7 @@ public class CamelModelGeneratorTest {
         JsonObject expAggObject = JsonParser.parseString(resource("expected-aggregate.json")).getAsJsonObject();
         JsonObject expAggContent = checkChildObject(expAggObject, "aggregate", "Aggregate");
         assertEquals(expAggContent, aggregate);
-        
+
         JsonObject restContent = jsonObject(rests.get("rests"));
         assertEquals(23, restContent.entrySet().size());
         checkChildObject(restContent, "apiKey", "Api Key");
@@ -130,7 +131,7 @@ public class CamelModelGeneratorTest {
         checkChildObject(compContent, "activemq", "ActiveMQ");
         checkChildObject(compContent, "kubernetes-nodes", "Kubernetes Nodes");
         checkChildObject(compContent, "zookeeper-master", "ZooKeeper Master");
-        
+
         checkForNulls(definitions);
         checkForNulls(rests);
         checkForNulls(dataformats);
@@ -140,10 +141,10 @@ public class CamelModelGeneratorTest {
 
     private void checkForNulls(JsonElement jsonElement) {
         assertNotNull(jsonElement);
-        
+
         if (jsonElement.isJsonObject()) {
             JsonObject jsonObject = jsonElement.getAsJsonObject();
-            for(Entry<String, JsonElement> entry : jsonObject.asMap().entrySet()) {
+            for (Entry<String, JsonElement> entry : jsonObject.asMap().entrySet()) {
                 checkForNulls(entry.getValue());
             }
         } else if (jsonElement.isJsonArray()) {
