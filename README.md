@@ -2,7 +2,21 @@
 
 This package contains the Maven generator [mojo](https://maven.apache.org/plugin-developers) used to convert the [Camel Catalog](https://camel.apache.org/manual/camel-catalog.html) into a JSON object that can be consumed by JavaScript clients.
 
-The mojo should be called from a client project's `pom.xml` as such:
+## Specifying Camel version
+
+The version of Camel Catalog to be generated is specified by the `org.apache.camel:camel-catalog` dependency in your project's POM.
+
+```xml
+<dependency>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-catalog</artifactId>
+    <version>4.0.1</version>
+</dependency>
+```
+
+## Generating model
+
+The mojo should be called from your project's POM as such:
 
 ```xml
 <plugin>
