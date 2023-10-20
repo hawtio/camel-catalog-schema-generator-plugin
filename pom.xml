@@ -48,12 +48,13 @@
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <version.gson>2.10.1</version.gson>
         <version.hawtio.util>2.17.0</version.hawtio.util>
-        <version.jackson>2.14.2</version.jackson>
-        <version.junit.jupiter>5.9.1</version.junit.jupiter>
-        <version.junit.platform>1.9.1</version.junit.platform>
-        <version.maven>3.8.1</version.maven>
+        <version.jackson>2.15.1</version.jackson>
+        <version.junit.jupiter>5.9.2</version.junit.jupiter>
+        <version.junit.platform>1.9.2</version.junit.platform>
+        <version.maven>3.9.5</version.maven>
+        <version.maven.plugin-tools>3.9.0</version.maven.plugin-tools>
         <version.osgi>8.0.0</version.osgi>
-        <version.org.apache.camel>3.20.2</version.org.apache.camel>
+        <version.org.apache.camel>3.21.1</version.org.apache.camel>
         <version.plexus.utils>3.5.1</version.plexus.utils>
     </properties>
 
@@ -72,7 +73,7 @@
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>${version.maven}</version>
+            <version>${version.maven.plugin-tools}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

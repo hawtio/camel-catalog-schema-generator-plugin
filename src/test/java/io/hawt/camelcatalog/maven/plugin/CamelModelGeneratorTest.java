@@ -127,7 +127,7 @@ public class CamelModelGeneratorTest {
         checkChildObject(langContent, "xtokenize", "XML Tokenize");
 
         JsonObject compContent = jsonObject(components.get("components"));
-        assertEquals(352, compContent.entrySet().size());
+        assertEquals(350, compContent.entrySet().size());
         checkChildObject(compContent, "activemq", "ActiveMQ");
         checkChildObject(compContent, "kubernetes-nodes", "Kubernetes Nodes");
         checkChildObject(compContent, "zookeeper-master", "ZooKeeper Master");
