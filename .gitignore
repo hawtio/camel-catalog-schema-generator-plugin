@@ -3,5 +3,8 @@
 **/.settings
 **/.classpath
 
+# IDEA
+.idea
+
 # Build
 **/target
