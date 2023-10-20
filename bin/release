@@ -21,7 +21,7 @@ echo ===========================================================================
 mvn -s $M2_SETTINGS \
   org.apache.maven.plugins:maven-release-plugin:2.5.3:prepare \
   -Prelease \
-  -Dtag=hawtio-$RELEASE_VERSION \
+  -Dtag=v$RELEASE_VERSION \
   -DreleaseVersion=$RELEASE_VERSION \
   -DdevelopmentVersion=$SNAPSHOT_VERSION
 
