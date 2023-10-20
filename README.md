@@ -1,5 +1,8 @@
 # Camel Catalog Schema Generator
 
+![Maven Central](https://img.shields.io/maven-central/v/io.hawt/camel-catalog-schema-generator-plugin)
+[![Test](https://github.com/hawtio/camel-catalog-schema-generator-plugin/actions/workflows/test.yml/badge.svg)](https://github.com/hawtio/camel-catalog-schema-generator-plugin/actions/workflows/test.yml)
+
 This package contains the Maven generator [mojo](https://maven.apache.org/plugin-developers) used to convert the [Camel Catalog](https://camel.apache.org/manual/camel-catalog.html) into a JSON object that can be consumed by JavaScript clients.
 
 ## Specifying Camel version
