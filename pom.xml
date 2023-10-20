@@ -9,7 +9,7 @@
     </parent>
 
     <groupId>io.hawt</groupId>
-    <artifactId>hawtio-camel-catalog-schema-generator-plugin</artifactId>
+    <artifactId>camel-catalog-schema-generator-plugin</artifactId>
     <version>0.0.2-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <packaging>maven-plugin</packaging>
@@ -23,9 +23,9 @@
     </licenses>
 
     <scm>
-        <connection>scm:git:git@github.com:hawtio/hawtio-camel-catalog-schema-generator-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:hawtio/hawtio-camel-catalog-schema-generator-plugin.git</developerConnection>
-        <url>git@github.com:hawtio/hawtio-camel-catalog-schema-generator-plugin.git</url>
+        <connection>scm:git:git@github.com:hawtio/camel-catalog-schema-generator-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:hawtio/camel-catalog-schema-generator-plugin.git</developerConnection>
+        <url>git@github.com:hawtio/camel-catalog-schema-generator-plugin.git</url>
         <tag>HEAD</tag>
     </scm>
 

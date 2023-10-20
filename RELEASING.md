@@ -65,6 +65,6 @@ So, for example, if you want to release version `1.0.0` then normally all you ne
 
 ### After releasing
 
-Go to [GitHub releases page](https://github.com/hawtio/hawtio-camel-catalog-schema-generator-plugin/releases) and draft a new release based on the tag you have just released (e.g. `hawtio-camel-catalog-schema-generator-plugin-1.0.0`) with release notes, then publish it.
+Go to [GitHub releases page](https://github.com/hawtio/camel-catalog-schema-generator-plugin/releases) and draft a new release based on the tag you have just released (e.g. `camel-catalog-schema-generator-plugin-1.0.0`) with release notes, then publish it.
 
 Finally tweet the new release from [@hawtio](https://twitter.com/hawtio) to let the community know!
