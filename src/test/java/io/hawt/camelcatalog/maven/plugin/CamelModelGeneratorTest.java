@@ -32,8 +32,8 @@ public class CamelModelGeneratorTest {
 
     private static final String TARGET_DIR = "./target";
     private final File schemaDir = new File(TARGET_DIR + "/schemas");
-    private final String schemaFileName = "camel-model.ts";
-    private final String camelVersion = "3.20.2";
+    private final String schemaFileName = "camel-model.js";
+    private final String camelVersion = "3.21.1";
     private final Logger logger = new ConsoleLogger();
     private final Log log = new DefaultLog(logger);
 

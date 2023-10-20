@@ -406,7 +406,7 @@ public class CamelModelGenerator {
                 JsonObject jsonObject = generateGroupSchema(pair.getName(), pair.getSchema());
                 writeToFile(pair.getName(), jsonObject); // write to json file
 
-                writer.write("import " + pair.getName() + " from './" + pair.getName() + "-camel-model.json';\n");
+                writer.write("import { " + pair.getName() + " } from './" + pair.getName() + "-camel-model.json';\n");
             }
 
             writer.write("\nvar apacheCamelModelVersion = '" + getVersion() + "';\n\n");
